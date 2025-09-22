@@ -480,7 +480,7 @@
         // Authentication Functions
         function checkAuthStatus() {
             const userData = document.getElementById('user-data');
-            if (userData && userData.textContent && !userData.textContent.includes('{{')) {
+            if (userData && userData.textContent && userData.textContent.trim().startsWith('{')) {
                 try {
                     currentUser = JSON.parse(userData.textContent);
                     if (currentUser) {
@@ -1164,7 +1164,7 @@
         async function ensureMedicinesLoaded() {
             try {
                 const dataEl = document.getElementById('medicines-data');
-                if (dataEl && dataEl.textContent && !dataEl.textContent.includes('{{')) {
+                if (dataEl && dataEl.textContent && dataEl.textContent.trim().startsWith('{')) {
                     window.medicines = JSON.parse(dataEl.textContent);
                 }
             } catch (e) {
