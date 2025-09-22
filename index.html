@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Online Medicine Delivery System</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.0/dist/tesseract.min.js"></script>
+    <style>
+        :root { 
+            --primary: #667eea; 
+            --secondary: #10b981; 
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            --text: #0f172a; 
+            --muted: #64748b; 
+            --chip: #e2e8f0; 
+            --success: #10b981; 
+            --card: #ffffff; 
+            --border: #e5e7eb;
+        }
+        body { 
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; 
+            margin: 0; 
+            background: var(--bg); 
+            color: var(--text); 
+            min-height: 100vh; 
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 20px auto; 
+            background: var(--card); 
+            border-radius: 16px; 
+            box-shadow: 0 20px 60px rgba(2,6,23,0.15); 
+            padding: 32px; 
+            backdrop-filter: blur(10px); 
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+        }
+        h1 { 
+            margin: 0; 
+            font-size: 2.5rem; 
+            font-weight: 700; 
+            background: linear-gradient(135deg, #667eea, #764ba2); 
+            background-clip: text; 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--muted);
+            transition: all 0.2s;
+        }
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        .nav-tab:hover {
+            color: var(--primary);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .row { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 16px; 
+            align-items: center; 
+            margin-bottom: 24px; 
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        input[type=text], input[type=password], input[type=number], input[type=file], select, textarea { 
+            padding: 12px 16px; 
+            border: 2px solid var(--border); 
+            border-radius: 12px; 
+            background: #fff; 
+            font-size: 14px; 
+            transition: all 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        button { 
+            padding: 12px 20px; 
+            border: 0; 
+            border-radius: 12px; 
+            background: var(--primary); 
+            color: #fff; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 14px; 
+            transition: all 0.2s; 
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); 
+        }
+        button:hover:not(:disabled) { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); 
+        }
+        button.secondary { 
+            background: var(--secondary); 
+            box-shadow: 0 4px 12px rgba(16,185,129,0.3); 
+        }
+        button.secondary:hover:not(:disabled) { 
+            box-shadow: 0 8px 20px rgba(16,185,129,0.4); 
+        }
+        button.danger {
+            background: var(--danger);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        button.danger:hover:not(:disabled) {
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+        }
+        button:disabled { 
+            background: #94a3b8; 
+            cursor: not-allowed; 
+            transform: none; 
+            box-shadow: none; 
+        }
+        .section { 
+            margin-top: 24px; 
+        }
+        .section-title { 
+            font-weight: 600; 
+            margin-bottom: 12px; 
+            color: var(--text); 
+            font-size: 1.1rem; 
+        }
+        .chips { 
+            display: flex; 
+            gap: 10px; 
+            flex-wrap: wrap; 
+            margin-top: 12px; 
+        }
+        .chip { 
+            background: linear-gradient(135deg, var(--primary), #3b82f6); 
+            color: white; 
+            padding: 8px 16px; 
+            border-radius: 20px; 
+            font-size: 14px; 
+            font-weight: 500; 
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2); 
+        }
+        .chip.empty { 
+            background: #f1f5f9; 
+            color: var(--muted); 
+        }
+        .medicine-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .medicine-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+        .medicine-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .medicine-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        .medicine-price {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+        .medicine-stock {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .cart-item-info {
+            flex: 1;
+        }
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            padding: 0;
+        }
+        .order-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .order-id {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .order-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-processing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-shipped {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .status-delivered {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 32px;
+            background: #f8fafc;
+            border-radius: 16px;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        @keyframes pulse { 
+            0%, 100% { opacity: 1; } 
+            50% { opacity: 0.5; } 
+        }
+        .loading {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="container">
+        <div class="login-form">
+            <h1>🏥 Online Medicine Delivery</h1>
+            <div class="sub" style="text-align: center; margin-bottom: 32px;">Login to access your medicine delivery portal</div>
+            
+            <div id="loginAlert"></div>
+            
+            <div class="form-group">
+                <label for="loginUsername">Username</label>
+                <input type="text" id="loginUsername" placeholder="Enter your username">
+            </div>
+            
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password">
+            </div>
+            
+            <div class="row">
+                <button onclick="login()" id="loginBtn">🔑 Login</button>
+                <button class="secondary" onclick="showRegister()">👤 Register</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Screen -->
+    <div id="registerScreen" class="container hidden">
+        <div class="login-form">
+            <h1>👤 Register Account</h1>
+            <div class="sub" style="text-align: center; margin-bottom: 32px;">Create your medicine delivery account</div>
+            
+            <div id="registerAlert"></div>
+            
+            <div class="form-group">
+                <label for="regUsername">Username</label>
+                <input type="text" id="regUsername" placeholder="Choose a username">
+            </div>
+            
+            <div class="form-group">
+                <label for="regPassword">Password</label>
+                <input type="password" id="regPassword" placeholder="Choose a password (min 6 characters)">
+            </div>
+            
+            <div class="form-group">
+                <label for="regAddress">Delivery Address</label>
+                <textarea id="regAddress" placeholder="Enter your complete delivery address" rows="3"></textarea>
+            </div>
+            
+            <div class="row">
+                <button onclick="register()" id="registerBtn">✅ Register</button>
+                <button class="secondary" onclick="showLogin()">🔑 Back to Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="container hidden">
+        <div class="header">
+            <h1>🏥 Medicine Delivery Portal</h1>
+            <div class="user-info">
+                <span>Welcome, <strong id="currentUser"></strong></span>
+                <button class="danger" onclick="logout()">🚪 Logout</button>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('search')">🔍 Search Medicines</button>
+            <button class="nav-tab" onclick="showTab('cart')">🛒 View Cart</button>
+            <button class="nav-tab" onclick="showTab('orders')">📦 My Orders</button>
+            <button class="nav-tab" onclick="showTab('prescription')">📷 Upload Prescription</button>
+        </div>
+
+        <!-- Search Medicines Tab -->
+        <div id="searchTab" class="tab-content active">
+            <div class="section">
+                <div class="section-title">🔍 Search Medicines</div>
+                <div class="form-group">
+                    <input type="text" id="searchInput" placeholder="Search for medicines..." onkeyup="searchMedicines()">
+                </div>
+                <div id="medicineGrid" class="medicine-grid">
+                    <!-- Medicines will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Cart Tab -->
+        <div id="cartTab" class="tab-content">
+            <div class="section">
+                <div class="section-title">🛒 Your Cart</div>
+                <div id="cartItems">
+                    <!-- Cart items will be loaded here -->
+                </div>
+                <div id="cartTotal" class="section">
+                    <div style="text-align: right; font-size: 1.2rem; font-weight: 600;">
+                        <div>Subtotal: ₹<span id="subtotal">0</span></div>
+                        <div>Delivery: ₹417.5</div>
+                        <div style="border-top: 2px solid var(--border); padding-top: 8px; margin-top: 8px;">
+                            Total: ₹<span id="total">417.5</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" style="justify-content: flex-end; margin-top: 24px;">
+                    <button class="secondary" onclick="placeOrder()" id="placeOrderBtn" disabled>📦 Place Order</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Tab -->
+        <div id="ordersTab" class="tab-content">
+            <div class="section">
+                <div class="section-title">📦 My Orders</div>
+                <div id="ordersList">
+                    <!-- Orders will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Prescription Upload Tab -->
+        <div id="prescriptionTab" class="tab-content">
+            <div class="section">
+                <div class="section-title">📷 Upload Prescription Photo</div>
+                <div class="sub">Upload your prescription image and let AI automatically detect medicines using Gemini 2.0 Flash</div>
+                <div class="row">
+                    <input type="file" id="prescriptionImage" accept="image/*" placeholder="Choose prescription image...">
+                    <button onclick="processImage()" id="scanBtn">📷 Scan Prescription</button>
+                    <button class="secondary" onclick="addDetectedToCart()" id="addDetectedBtn" disabled>🛒 Add Detected to Cart</button>
+                </div>
+                <div class="section">
+                    <div class="section-title">🔍 Detected Medicines</div>
+                    <div id="detectedChips" class="chips">
+                        <span class="chip empty">No medicines detected yet</span>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="section-title">📋 Processing Status</div>
+                    <div id="statusDiv"><span class="muted">Ready to scan</span></div>
+                </div>
+                <div id="result" class="section" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+    <script type="application/json" id="medicines-data">{{ medicines | tojson | safe }}</script>
+    <script type="application/json" id="user-data">{{ current_user | tojson | safe }}</script>
+    
+    <script>
+        const API_BASE = (location.protocol === 'file:') ? 'http://127.0.0.1:5000' : '';
+        let extractedMedicines = [];
+        let currentUser = null;
+        let userCart = {};
+        let userOrders = [];
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+            ensureMedicinesLoaded();
+        });
+
+        // Authentication Functions
+        function checkAuthStatus() {
+            const userData = document.getElementById('user-data');
+            if (userData && userData.textContent && !userData.textContent.includes('{{')) {
+                try {
+                    currentUser = JSON.parse(userData.textContent);
+                    if (currentUser) {
+                        showMainApp();
+                        return;
+                    }
+                } catch (e) {
+                    console.warn("Failed to parse user data:", e);
+                }
+            }
+            showLogin();
+        }
+
+        function showLogin() {
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('registerScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        function showRegister() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('registerScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+        }
+
+        function showMainApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('registerScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('currentUser').textContent = currentUser || 'User';
+            loadUserData();
+        }
+
+        async function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const alertDiv = document.getElementById('loginAlert');
+            
+            if (!username || !password) {
+                showAlert(alertDiv, "Please enter both username and password", "error");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentUser = username;
+                    showAlert(alertDiv, "Login successful!", "success");
+                    setTimeout(() => showMainApp(), 1000);
+                } else {
+                    showAlert(alertDiv, data.message || "Login failed", "error");
+                }
+            } catch (error) {
+                console.error("Login error:", error);
+                showAlert(alertDiv, "Connection error. Please try again.", "error");
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value.trim();
+            const address = document.getElementById('regAddress').value.trim();
+            const alertDiv = document.getElementById('registerAlert');
+            
+            if (!username || !password || !address) {
+                showAlert(alertDiv, "Please fill in all fields", "error");
+                return;
+            }
+
+            if (password.length < 6) {
+                showAlert(alertDiv, "Password must be at least 6 characters", "error");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, address })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(alertDiv, "Registration successful! You can now login.", "success");
+                    setTimeout(() => showLogin(), 2000);
+                } else {
+                    showAlert(alertDiv, data.message || "Registration failed", "error");
+                }
+            } catch (error) {
+                console.error("Registration error:", error);
+                showAlert(alertDiv, "Connection error. Please try again.", "error");
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            userCart = {};
+            userOrders = [];
+            extractedMedicines = [];
+            
+            // Clear form fields
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('regUsername').value = '';
+            document.getElementById('regPassword').value = '';
+            document.getElementById('regAddress').value = '';
+            
+            showLogin();
+        }
+
+        // Utility Functions
+        function showAlert(container, message, type) {
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        function showTab(tabName) {
+            // Update nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Load data for specific tabs
+            if (tabName === 'search') {
+                loadMedicines();
+            } else if (tabName === 'cart') {
+                loadCart();
+            } else if (tabName === 'orders') {
+                loadOrders();
+            }
+        }
+
+        // Medicine Search Functions
+        async function loadMedicines() {
+            try {
+                await ensureMedicinesLoaded();
+                displayMedicines(window.medicines || {});
+            } catch (error) {
+                console.error("Error loading medicines:", error);
+            }
+        }
+
+        function searchMedicines() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filteredMedicines = {};
+            
+            for (const [name, details] of Object.entries(window.medicines || {})) {
+                if (name.toLowerCase().includes(query)) {
+                    filteredMedicines[name] = details;
+                }
+            }
+            
+            displayMedicines(filteredMedicines);
+        }
+
+        function displayMedicines(medicines) {
+            const grid = document.getElementById('medicineGrid');
+            grid.innerHTML = '';
+            
+            if (Object.keys(medicines).length === 0) {
+                grid.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 32px;">No medicines found</div>';
+                return;
+            }
+            
+            for (const [name, details] of Object.entries(medicines)) {
+                const card = document.createElement('div');
+                card.className = 'medicine-card';
+                card.innerHTML = `
+                    <div class="medicine-name">💊 ${name}</div>
+                    <div class="medicine-price">₹${details.price}</div>
+                    <div class="medicine-stock">Stock: ${details.stock} units</div>
+                    <div class="row">
+                        <input type="number" id="qty-${name}" min="1" max="${details.stock}" value="1" style="width: 80px;">
+                        <button onclick="addToCart('${name}')" ${details.stock === 0 ? 'disabled' : ''}>
+                            ${details.stock === 0 ? '❌ Out of Stock' : '🛒 Add to Cart'}
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        // Cart Functions
+        async function addToCart(medicineName, quantity = null) {
+            if (!currentUser) {
+                alert("Please login first");
+                return;
+            }
+
+            const qtyInput = document.getElementById(`qty-${medicineName}`);
+            const qty = quantity || parseInt(qtyInput?.value || 1);
+            
+            if (qty <= 0) {
+                alert("Please enter a valid quantity");
+                return;
+            }
+
+            const medicine = window.medicines[medicineName];
+            if (!medicine || medicine.stock < qty) {
+                alert("Insufficient stock available");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/add_to_cart`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username: currentUser,
+                        medicine: medicineName, 
+                        quantity: qty 
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`Added ${qty} ${medicineName} to cart!`);
+                    userCart[medicineName] = (userCart[medicineName] || 0) + qty;
+                    if (qtyInput) qtyInput.value = 1;
+                    loadCart(); // Refresh cart display
+                } else {
+                    alert(data.message || 'Failed to add to cart');
+                }
+            } catch (error) {
+                console.error("Add to cart error:", error);
+                alert("Connection error. Please try again.");
+            }
+        }
+
+        async function loadCart() {
+            try {
+                const response = await fetch(`${API_BASE}/get_cart?username=${currentUser}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    userCart = data.cart || {};
+                    displayCart();
+                }
+            } catch (error) {
+                console.error("Load cart error:", error);
+                displayCart(); // Show empty cart
+            }
+        }
+
+        function displayCart() {
+            const cartItems = document.getElementById('cartItems');
+            const subtotalEl = document.getElementById('subtotal');
+            const totalEl = document.getElementById('total');
+            const placeOrderBtn = document.getElementById('placeOrderBtn');
+            
+            cartItems.innerHTML = '';
+            let subtotal = 0;
+            
+            if (Object.keys(userCart).length === 0) {
+                cartItems.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 32px;">Your cart is empty</div>';
+                placeOrderBtn.disabled = true;
+            } else {
+                placeOrderBtn.disabled = false;
+                
+                for (const [medicine, quantity] of Object.entries(userCart)) {
+                    const medicineData = window.medicines[medicine];
+                    if (!medicineData) continue;
+                    
+                    const itemTotal = medicineData.price * quantity;
+                    subtotal += itemTotal;
+                    
+                    const cartItem = document.createElement('div');
+                    cartItem.className = 'cart-item';
+                    cartItem.innerHTML = `
+                        <div class="cart-item-info">
+                            <div style="font-weight: 600;">💊 ${medicine}</div>
+                            <div style="color: var(--muted);">₹${medicineData.price} × ${quantity} = ₹${itemTotal}</div>
+                        </div>
+                        <div class="cart-item-controls">
+                            <div class="quantity-control">
+                                <button class="quantity-btn" onclick="updateCartQuantity('${medicine}', ${quantity - 1})">-</button>
+                                <span>${quantity}</span>
+                                <button class="quantity-btn" onclick="updateCartQuantity('${medicine}', ${quantity + 1})">+</button>
+                            </div>
+                            <button class="danger" onclick="removeFromCart('${medicine}')">🗑️</button>
+                        </div>
+                    `;
+                    cartItems.appendChild(cartItem);
+                }
+            }
+            
+            subtotalEl.textContent = subtotal.toFixed(2);
+            totalEl.textContent = (subtotal + 417.5).toFixed(2);
+        }
+
+        async function updateCartQuantity(medicine, newQuantity) {
+            if (newQuantity <= 0) {
+                removeFromCart(medicine);
+                return;
+            }
+
+            const medicineData = window.medicines[medicine];
+            if (newQuantity > medicineData.stock) {
+                alert("Insufficient stock available");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/update_cart`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username: currentUser,
+                        medicine: medicine, 
+                        quantity: newQuantity 
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    userCart[medicine] = newQuantity;
+                    displayCart();
+                } else {
+                    alert(data.message || 'Failed to update cart');
+                }
+            } catch (error) {
+                console.error("Update cart error:", error);
+                alert("Connection error. Please try again.");
+            }
+        }
+
+        async function removeFromCart(medicine) {
+            try {
+                const response = await fetch(`${API_BASE}/remove_from_cart`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username: currentUser,
+                        medicine: medicine
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    delete userCart[medicine];
+                    displayCart();
+                } else {
+                    alert(data.message || 'Failed to remove from cart');
+                }
+            } catch (error) {
+                console.error("Remove from cart error:", error);
+                alert("Connection error. Please try again.");
+            }
+        }
+
+        // Order Functions
+        async function placeOrder() {
+            if (Object.keys(userCart).length === 0) {
+                alert("Your cart is empty!");
+                return;
+            }
+
+            const prescription = prompt("Enter prescription details (doctor name, notes, etc.):");
+            if (!prescription) {
+                alert("Prescription details are required");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/place_order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username: currentUser,
+                        prescription: prescription
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`Order placed successfully! Order ID: ${data.order_id}\nEstimated delivery: ${data.delivery_time}`);
+                    userCart = {};
+                    displayCart();
+                    loadOrders();
+                } else {
+                    alert(data.message || 'Failed to place order');
+                }
+            } catch (error) {
+                console.error("Place order error:", error);
+                alert("Connection error. Please try again.");
+            }
+        }
+
+        async function loadOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/get_orders?username=${currentUser}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    userOrders = data.orders || [];
+                    displayOrders();
+                }
+            } catch (error) {
+                console.error("Load orders error:", error);
+                displayOrders(); // Show empty orders
+            }
+        }
+
+        function displayOrders() {
+            const ordersList = document.getElementById('ordersList');
+            ordersList.innerHTML = '';
+            
+            if (userOrders.length === 0) {
+                ordersList.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 32px;">No orders found</div>';
+                return;
+            }
+            
+            userOrders.forEach(order => {
+                const orderCard = document.createElement('div');
+                orderCard.className = 'order-card';
+                
+                const itemsList = Object.entries(order.items || {})
+                    .map(([med, qty]) => `${med} (${qty})`)
+                    .join(', ');
+                
+                orderCard.innerHTML = `
+                    <div class="order-header">
+                        <div class="order-id">Order #${order.order_id}</div>
+                        <div class="order-status status-${order.status.toLowerCase()}">${order.status}</div>
+                    </div>
+                    <div style="margin-bottom: 8px;"><strong>Items:</strong> ${itemsList}</div>
+                    <div style="margin-bottom: 8px;"><strong>Total:</strong> ₹${order.total || 'N/A'}</div>
+                    <div style="margin-bottom: 8px;"><strong>Delivery Time:</strong> ${order.delivery_time || 'N/A'}</div>
+                    <div style="margin-bottom: 12px;"><strong>Prescription:</strong> ${order.prescription || 'N/A'}</div>
+                    ${order.status === 'Processing' ? `
+                        <button class="danger" onclick="cancelOrder('${order.order_id}')">❌ Cancel Order</button>
+                    ` : ''}
+                `;
+                ordersList.appendChild(orderCard);
+            });
+        }
+
+        async function cancelOrder(orderId) {
+            if (!confirm('Are you sure you want to cancel this order?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/cancel_order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username: currentUser,
+                        order_id: orderId
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert("Order cancelled successfully!");
+                    loadOrders();
+                } else {
+                    alert(data.message || "Failed to cancel order");
+                }
+            } catch (error) {
+                console.error("Cancel order error:", error);
+                alert("Connection error. Please try again.");
+            }
+        }
+
+        // Load user data
+        async function loadUserData() {
+            await loadCart();
+            await loadOrders();
+            await loadMedicines();
+        }
+
+        function updateStatus(message, isProcessing = false) {
+            const statusDiv = document.getElementById('statusDiv');
+            statusDiv.innerHTML = `<span class="muted ${isProcessing ? 'loading' : ''}">${message}</span>`;
+        }
+
+        // Prescription Processing Functions
+        async function processImage() {
+            const input = document.getElementById('prescriptionImage');
+            if (!input.files[0]) {
+                alert("Please upload an image first!");
+                return;
+            }
+            const resultDiv = document.getElementById('result');
+            const scanBtn = document.getElementById('scanBtn');
+            
+            scanBtn.disabled = true;
+            scanBtn.textContent = '⏳ Processing...';
+            updateStatus('Loading medicines database...', true);
+            resultDiv.style.display = 'none';
+
+            // Ensure we have the medicines list before attempting matching
+            await ensureMedicinesLoaded();
+            if (!window.medicines || Object.keys(window.medicines).length === 0) {
+                updateStatus('❌ Error: Medicines database not loaded');
+                scanBtn.disabled = false;
+                scanBtn.textContent = '📷 Scan Prescription';
+                return;
+            }
+            
+            updateStatus('🔍 Analyzing prescription image...', true);
+
+            try {
+                const { data: { text } } = await Tesseract.recognize(
+                    input.files[0],
+                    'eng',
+                    { 
+                        logger: info => console.log("OCR Progress:", info),
+                        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ',
+                        psm: 6,
+                        oem: 1
+                    }
+                );
+                if (!text || text.trim() === '') {
+                    throw new Error('No text detected in the image. Please use a clearer image.');
+                }
+                resultDiv.innerHTML = "Extracted Text:\n" + text;
+
+                const lowerToOriginal = Object.keys(window.medicines || {}).reduce((acc, k) => {
+                    acc[k.toLowerCase()] = k;
+                    return acc;
+                }, {});
+                const medicineKeys = Object.keys(lowerToOriginal);
+                const lines = text.split('\n')
+                    .map(line => line.trim().toLowerCase().replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim())
+                    .filter(line => line.length > 0);
+                const fullNorm = lines.join(' ');
+
+                // Simple Levenshtein distance for fuzzy matching
+                function levenshtein(a, b) {
+                    const m = a.length, n = b.length;
+                    if (m === 0) return n;
+                    if (n === 0) return m;
+                    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+                    for (let i = 0; i <= m; i++) dp[i][0] = i;
+                    for (let j = 0; j <= n; j++) dp[0][j] = j;
+                    for (let i = 1; i <= m; i++) {
+                        for (let j = 1; j <= n; j++) {
+                            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+                            dp[i][j] = Math.min(
+                                dp[i - 1][j] + 1,
+                                dp[i][j - 1] + 1,
+                                dp[i - 1][j - 1] + cost
+                            );
+                        }
+                    }
+                    return dp[m][n];
+                }
+
+                function isFuzzyMatch(key, line) {
+                    if (line.includes(key)) return true;
+                    // Token-based fuzzy check
+                    const keyTokens = key.split(' ');
+                    const lineTokens = line.split(' ');
+                    let matchedTokens = 0;
+                    for (const kt of keyTokens) {
+                        for (const lt of lineTokens) {
+                            const dist = levenshtein(kt, lt);
+                            const maxLen = Math.max(kt.length, lt.length) || 1;
+                            const similarity = 1 - dist / maxLen;
+                            if ((kt.length >= 6 && similarity >= 0.75) || (kt.length < 6 && similarity >= 0.6)) {
+                                matchedTokens++;
+                                break;
+                            }
+                        }
+                    }
+                    // Consider it a match if most tokens of the key were matched
+                    return matchedTokens >= Math.max(1, Math.ceil(keyTokens.length * 0.8));
+                }
+
+                // Enhanced matching: exact substring or fuzzy match on lines and on full text
+                let detectedLower = lines.reduce((acc, line) => {
+                    const detected = medicineKeys.filter(key => isFuzzyMatch(key, line));
+                    return [...acc, ...detected];
+                }, []);
+                // Also check against the full normalized text to catch line breaks or numbering
+                detectedLower = detectedLower.concat(
+                    medicineKeys.filter(key => isFuzzyMatch(key, fullNorm))
+                );
+                let detectedOriginals = Array.from(new Set(detectedLower.map(lc => lowerToOriginal[lc])));
+
+                // Ask server to extract via Gemini using known catalogue to improve accuracy
+                try {
+                    const apiResp = await fetch(`${API_BASE}/extract_medicines`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text })
+                    });
+                    if (apiResp.ok) {
+                        const apiData = await apiResp.json();
+                        if (Array.isArray(apiData.detected)) {
+                            detectedOriginals = Array.from(new Set([...detectedOriginals, ...apiData.detected]));
+                        }
+                        console.log("Server extraction source:", apiData.source);
+                    } else {
+                        console.warn("extract_medicines failed with status", apiResp.status);
+                    }
+                } catch (e) {
+                    console.warn("extract_medicines error", e);
+                }
+
+                extractedMedicines = detectedOriginals; // keep originals for server-side matching
+
+                resultDiv.innerHTML += "\nDetected Medicines: " + (extractedMedicines.length ? extractedMedicines.join(", ") : "None");
+                console.log("Detected Medicines:", extractedMedicines);
+                
+                // Render chips and enable Add to Cart accordingly
+                renderDetectedChips();
+                document.getElementById('addDetectedBtn').disabled = extractedMedicines.length === 0;
+                
+                if (extractedMedicines.length > 0) {
+                    updateStatus(`✅ Found ${extractedMedicines.length} medicine(s) in prescription`);
+                } else {
+                    updateStatus('⚠️ No medicines detected in image');
+                }
+                
+                scanBtn.disabled = false;
+                scanBtn.textContent = '📷 Scan Prescription';
+            } catch (error) {
+                resultDiv.innerHTML = "Error processing image: " + error.message;
+                resultDiv.style.display = 'block';
+                console.error("OCR Error:", error);
+                extractedMedicines = [];
+                renderDetectedChips();
+                document.getElementById('addDetectedBtn').disabled = true;
+                updateStatus('❌ Error processing image');
+                scanBtn.disabled = false;
+                scanBtn.textContent = '📷 Scan Prescription';
+            }
+        }
+
+        async function addDetectedToCart() {
+            if (extractedMedicines.length === 0) {
+                alert("No medicines detected to add to cart!");
+                return;
+            }
+            
+            if (!currentUser) {
+                alert("Please login first");
+                return;
+            }
+            
+            try {
+                for (const medicine of extractedMedicines) {
+                    await addToCart(medicine, 1);
+                }
+                
+                alert(`Added ${extractedMedicines.length} detected medicines to cart!`);
+                extractedMedicines = [];
+                renderDetectedChips();
+                document.getElementById('addDetectedBtn').disabled = true;
+                
+                // Switch to cart tab to show added items
+                showTab('cart');
+                document.querySelector('[onclick=\"showTab(\\\"cart\\\")\"]').classList.add('active');
+                document.querySelector('[onclick=\"showTab(\\\"prescription\\\")\"]').classList.remove('active');
+                
+            } catch (error) {
+                console.error("Error adding detected medicines:", error);
+                alert("Error adding medicines to cart. Please try again.");
+            }
+        }
+
+        async function ensureMedicinesLoaded() {
+            try {
+                const dataEl = document.getElementById('medicines-data');
+                if (dataEl && dataEl.textContent && !dataEl.textContent.includes('{{')) {
+                    window.medicines = JSON.parse(dataEl.textContent);
+                }
+            } catch (e) {
+                console.warn("Failed to parse medicines JSON from template:", e);
+            }
+            if (!window.medicines || Object.keys(window.medicines).length === 0) {
+                try {
+                    const resp = await fetch(`${API_BASE}/medicines`, { mode: 'cors' });
+                    if (resp.ok) {
+                        window.medicines = await resp.json();
+                    } else {
+                        console.error("Failed to fetch /medicines:", resp.status);
+                    }
+                } catch (e) {
+                    console.error("Error fetching /medicines:", e);
+                }
+            }
+            // Final fallback to a minimal built-in list so OCR matching can still work in demos
+            if (!window.medicines || Object.keys(window.medicines).length === 0) {
+                window.medicines = {
+                    "Paracetamol": { price: 10, stock: 150 },
+                    "Ibuprofen": { price: 13, stock: 100 },
+                    "Antacid": { price: 15, stock: 200 },
+                    "Cough Syrup": { price: 11, stock: 80 },
+                    "Vitamin C": { price: 5, stock: 180 },
+                    "Allergy Relief": { price: 16, stock: 60 },
+                    "Metformin": { price: 23, stock: 50 },
+                    "Atorvastatin": { price: 27, stock: 40 },
+                    "Insulin": { price: 36, stock: 30 },
+                    "Livogon": { price: 20, stock: 25 },
+                };
+                console.warn("Using built-in fallback medicines list. Start the Flask server for live data.");
+            }
+            if (!window.medicines || Object.keys(window.medicines).length === 0) {
+                console.error("Error: No medicines loaded from server. If you are opening index.html directly, please run the Flask server (server.py) and open http://localhost:5000/ in your browser.");
+            } else {
+                console.log("Loaded Medicines:", window.medicines);
+            }
+        }
+
+        function renderDetectedChips() {
+            const c = document.getElementById('detectedChips');
+            c.innerHTML = '';
+            if (!extractedMedicines || extractedMedicines.length === 0) {
+                c.innerHTML = '<span class="chip empty">No medicines detected</span>';
+                return;
+            }
+            for (const m of extractedMedicines) {
+                const span = document.createElement('span');
+                span.className = 'chip';
+                span.textContent = `💊 ${m}`;
+                c.appendChild(span);
+            }
+        }
+    </script>
+</body>
