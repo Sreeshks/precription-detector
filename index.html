@@ -342,6 +342,103 @@
                 <button onclick="login()" id="loginBtn">🔑 Login</button>
                 <button class="secondary" onclick="showRegister()">👤 Register</button>
             </div>
+            <div style="text-align:center; margin-top: 12px;">
+                <button class="secondary" onclick="showAdminLogin()" id="showAdminBtn">👨‍💼 Admin Login</button>
+            </div>
+        </div>
+    </div>
+    <!-- Admin Login Screen -->
+    <div id="adminLoginScreen" class="container hidden">
+        <div class="login-form">
+            <h1>👨‍💼 Admin Login</h1>
+            <div class="sub" style="text-align: center; margin-bottom: 32px;">Login as admin to manage medicines and orders</div>
+            <div id="adminLoginAlert"></div>
+            <div class="form-group">
+                <label for="adminUsername">Admin Username</label>
+                <input type="text" id="adminUsername" placeholder="Enter admin username">
+            </div>
+            <div class="form-group">
+                <label for="adminPassword">Admin Password</label>
+                <input type="password" id="adminPassword" placeholder="Enter admin password">
+            </div>
+            <div class="row">
+                <button onclick="adminLogin()" id="adminLoginBtn">🔑 Admin Login</button>
+                <button class="secondary" onclick="showLogin()">⬅️ Back</button>
+            </div>
+        </div>
+    </div>
+    <!-- Admin Dashboard Placeholder -->
+    <div id="adminDashboard" class="container hidden">
+        <div class="header">
+            <h1>👨‍💼 Admin Dashboard</h1>
+            <div class="user-info">
+                <span>Welcome, <strong id="currentAdmin"></strong></span>
+                <button class="danger" onclick="logoutAdmin()">🚪 Logout</button>
+            </div>
+        </div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showAdminTab('add')">➕ Add Medicine</button>
+            <button class="nav-tab" onclick="showAdminTab('remove')">➖ Remove Medicine</button>
+            <button class="nav-tab" onclick="showAdminTab('orders')">📦 View Orders</button>
+            <button class="nav-tab" onclick="showAdminTab('update')">🔄 Update Order Status</button>
+            <button class="nav-tab" onclick="showAdminTab('stock')">📊 View Stock</button>
+        </div>
+        <div id="adminAddTab" class="tab-content active">
+            <div class="section-title">➕ Add Medicine</div>
+            <form id="addMedicineForm" onsubmit="addMedicine(event)">
+                <div class="form-group">
+                    <label for="adminAddName">Medicine Name</label>
+                    <input type="text" id="adminAddName" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminAddPrice">Price (INR)</label>
+                    <input type="number" id="adminAddPrice" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminAddStock">Stock</label>
+                    <input type="number" id="adminAddStock" min="0" required>
+                </div>
+                <button type="submit">Add Medicine</button>
+                <div id="adminAddAlert"></div>
+            </form>
+        </div>
+        <div id="adminRemoveTab" class="tab-content">
+            <div class="section-title">➖ Remove Medicine</div>
+            <form id="removeMedicineForm" onsubmit="removeMedicine(event)">
+                <div class="form-group">
+                    <label for="adminRemoveName">Medicine Name</label>
+                    <input type="text" id="adminRemoveName" required>
+                </div>
+                <button type="submit" class="danger">Remove Medicine</button>
+                <div id="adminRemoveAlert"></div>
+            </form>
+        </div>
+        <div id="adminOrdersTab" class="tab-content">
+            <div class="section-title">📦 Orders</div>
+            <div id="adminOrdersList"></div>
+        </div>
+        <div id="adminUpdateTab" class="tab-content">
+            <div class="section-title">🔄 Update Order Status</div>
+            <form id="updateOrderForm" onsubmit="updateOrderStatus(event)">
+                <div class="form-group">
+                    <label for="adminOrderId">Order ID</label>
+                    <input type="text" id="adminOrderId" required>
+                </div>
+                <div class="form-group">
+                    <label for="adminOrderStatus">New Status</label>
+                    <select id="adminOrderStatus" required>
+                        <option value="Processing">Processing</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Delivered">Delivered</option>
+                    </select>
+                </div>
+                <button type="submit">Update Status</button>
+                <div id="adminUpdateAlert"></div>
+            </form>
+        </div>
+        <div id="adminStockTab" class="tab-content">
+            <div class="section-title">📊 Medicine Stock</div>
+            <div id="adminStockList"></div>
         </div>
     </div>
 
@@ -470,6 +567,160 @@
         let currentUser = null;
         let userCart = {};
         let userOrders = [];
+        let currentAdmin = null;
+
+        // Admin Dashboard Tab Logic
+        function showAdminTab(tab) {
+            document.querySelectorAll('#adminDashboard .nav-tab').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('#adminDashboard .tab-content').forEach(tabEl => tabEl.classList.remove('active'));
+            document.querySelector(`#adminDashboard .nav-tab[onclick*="${tab}"]`).classList.add('active');
+            document.getElementById('admin' + capitalize(tab) + 'Tab').classList.add('active');
+            if (tab === 'orders') loadAdminOrders();
+            if (tab === 'stock') loadAdminStock();
+        }
+        function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+        // Add Medicine
+        async function addMedicine(e) {
+            e.preventDefault();
+            const name = document.getElementById('adminAddName').value.trim();
+            const price = parseFloat(document.getElementById('adminAddPrice').value);
+            const stock = parseInt(document.getElementById('adminAddStock').value);
+            const alertDiv = document.getElementById('adminAddAlert');
+            if (!name || isNaN(price) || isNaN(stock) || price < 0 || stock < 0) {
+                showAlert(alertDiv, 'Please enter valid values.', 'error');
+                return;
+            }
+            const resp = await fetch(`${API_BASE}/admin_add_medicine`, {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ name, price, stock })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                showAlert(alertDiv, 'Medicine added!', 'success');
+                document.getElementById('addMedicineForm').reset();
+                loadAdminStock();
+            } else {
+                showAlert(alertDiv, data.message || 'Error!', 'error');
+            }
+        }
+        // Remove Medicine
+        async function removeMedicine(e) {
+            e.preventDefault();
+            const name = document.getElementById('adminRemoveName').value.trim();
+            const alertDiv = document.getElementById('adminRemoveAlert');
+            if (!name) {
+                showAlert(alertDiv, 'Enter a medicine name.', 'error');
+                return;
+            }
+            const resp = await fetch(`${API_BASE}/admin_remove_medicine`, {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ name })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                showAlert(alertDiv, 'Medicine removed!', 'success');
+                document.getElementById('removeMedicineForm').reset();
+                loadAdminStock();
+            } else {
+                showAlert(alertDiv, data.message || 'Error!', 'error');
+            }
+        }
+        // Show Stock
+        async function loadAdminStock() {
+            const stockDiv = document.getElementById('adminStockList');
+            stockDiv.innerHTML = '<div>Loading...</div>';
+            const resp = await fetch(`${API_BASE}/medicines`);
+            const meds = await resp.json();
+            let html = '<table style="width:100%;border-collapse:collapse"><tr><th>Name</th><th>Price</th><th>Stock</th></tr>';
+            for (const [name, d] of Object.entries(meds)) {
+                html += `<tr><td>${name}</td><td>₹${d.price}</td><td>${d.stock}</td></tr>`;
+            }
+            html += '</table>';
+            stockDiv.innerHTML = html;
+        }
+        // Show Orders
+        async function loadAdminOrders() {
+            const ordersDiv = document.getElementById('adminOrdersList');
+            ordersDiv.innerHTML = '<div>Loading...</div>';
+            const resp = await fetch(`${API_BASE}/admin_orders`);
+            const data = await resp.json();
+            if (!data.success) { ordersDiv.innerHTML = data.message || 'Error!'; return; }
+            let html = '<table style="width:100%;border-collapse:collapse"><tr><th>ID</th><th>User</th><th>Status</th><th>Items</th><th>Delivery</th></tr>';
+            for (const order of data.orders) {
+                html += `<tr><td>${order.order_id}</td><td>${order.username}</td><td>${order.status}</td><td>${Object.entries(order.items).map(([m,q])=>`${m} (${q})`).join(', ')}</td><td>${order.delivery_time}</td></tr>`;
+            }
+            html += '</table>';
+            ordersDiv.innerHTML = html;
+        }
+        // Update Order Status
+        async function updateOrderStatus(e) {
+            e.preventDefault();
+            const order_id = document.getElementById('adminOrderId').value.trim();
+            const status = document.getElementById('adminOrderStatus').value;
+            const alertDiv = document.getElementById('adminUpdateAlert');
+            if (!order_id || !status) {
+                showAlert(alertDiv, 'Order ID and status required.', 'error');
+                return;
+            }
+            const resp = await fetch(`${API_BASE}/admin_update_order`, {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ order_id, status })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                showAlert(alertDiv, 'Order status updated!', 'success');
+                document.getElementById('updateOrderForm').reset();
+                loadAdminOrders();
+            } else {
+                showAlert(alertDiv, data.message || 'Error!', 'error');
+            }
+        }
+
+        // Admin login functions
+        function showAdminLogin() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('registerScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('adminLoginScreen').classList.remove('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+        }
+        function adminLogin() {
+            const username = document.getElementById('adminUsername').value.trim();
+            const password = document.getElementById('adminPassword').value.trim();
+            const alertDiv = document.getElementById('adminLoginAlert');
+            if (!username || !password) {
+                showAlert(alertDiv, "Please enter both admin username and password", "error");
+                return;
+            }
+            fetch(`${API_BASE}/admin_login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            }).then(async response => {
+                const data = await response.json();
+                if (data.success && data.is_admin) {
+                    currentAdmin = username;
+                    showAlert(alertDiv, "Admin login successful!", "success");
+                    setTimeout(() => showAdminDashboard(), 1000);
+                } else {
+                    showAlert(alertDiv, data.message || "Admin login failed", "error");
+                }
+            }).catch(() => {
+                showAlert(alertDiv, "Connection error. Please try again.", "error");
+            });
+        }
+        function showAdminDashboard() {
+            document.getElementById('adminLoginScreen').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            document.getElementById('currentAdmin').textContent = currentAdmin || 'Admin';
+        }
+        function logoutAdmin() {
+            currentAdmin = null;
+            document.getElementById('adminUsername').value = '';
+            document.getElementById('adminPassword').value = '';
+            showLogin();
+        }
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
@@ -1221,3 +1472,4 @@
         }
     </script>
 </body>
+</html>

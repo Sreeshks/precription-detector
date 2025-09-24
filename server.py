@@ -148,11 +148,32 @@ def login():
         stored_password = users[username].get('password', '').strip()
         if stored_password.lower() == password.lower():
             session['username'] = username
-            return jsonify({"success": True, "message": "Login successful"})
+            session['is_admin'] = users[username].get('is_admin', False)
+            return jsonify({"success": True, "message": "Login successful", "is_admin": users[username].get('is_admin', False)})
         else:
             return jsonify({"success": False, "message": "Invalid password"})
     else:
         return jsonify({"success": False, "message": "Username not found"})
+
+@app.route("/admin_login", methods=["POST"])
+def admin_login():
+    data = request.json
+    username = data.get('username', '').strip()
+    password = data.get('password', '').strip()
+    
+    # Only allow admin users
+    if not username or not password:
+        return jsonify({"success": False, "message": "Username and password required"})
+    if username in users and users[username].get('is_admin', False):
+        stored_password = users[username].get('password', '').strip()
+        if stored_password.lower() == password.lower():
+            session['username'] = username
+            session['is_admin'] = True
+            return jsonify({"success": True, "message": "Admin login successful", "is_admin": True})
+        else:
+            return jsonify({"success": False, "message": "Invalid admin password"})
+    else:
+        return jsonify({"success": False, "message": "Admin username not found or not an admin"})
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -368,6 +389,71 @@ def cancel_order():
     save_data(medicines, users, orders, cart)
     
     return jsonify({"success": True, "message": "Order cancelled successfully"})
+
+# --- Admin API Endpoints ---
+from flask import abort
+
+def is_admin():
+    return session.get('is_admin', False)
+
+@app.route('/admin_add_medicine', methods=['POST'])
+def admin_add_medicine():
+    if not is_admin():
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+    data = request.json
+    name = data.get('name', '').strip()
+    try:
+        price = float(data.get('price', 0))
+        stock = int(data.get('stock', 0))
+    except Exception:
+        return jsonify({'success': False, 'message': 'Invalid price or stock'}), 400
+    if not name or price < 0 or stock < 0:
+        return jsonify({'success': False, 'message': 'Invalid input'}), 400
+    if name in medicines:
+        return jsonify({'success': False, 'message': 'Medicine already exists'}), 400
+    medicines[name] = {'price': price, 'stock': stock}
+    save_data(medicines, users, orders, cart)
+    return jsonify({'success': True})
+
+@app.route('/admin_remove_medicine', methods=['POST'])
+def admin_remove_medicine():
+    if not is_admin():
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+    data = request.json
+    name = data.get('name', '').strip()
+    if not name or name not in medicines:
+        return jsonify({'success': False, 'message': 'Medicine not found'}), 404
+    del medicines[name]
+    save_data(medicines, users, orders, cart)
+    return jsonify({'success': True})
+
+@app.route('/admin_orders', methods=['GET'])
+def admin_orders():
+    if not is_admin():
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+    all_orders = []
+    for oid, order in orders.items():
+        order_data = order.copy()
+        order_data['order_id'] = oid
+        if isinstance(order_data['delivery_time'], datetime):
+            order_data['delivery_time'] = order_data['delivery_time'].strftime('%Y-%m-%d %H:%M:%S')
+        all_orders.append(order_data)
+    return jsonify({'success': True, 'orders': all_orders})
+
+@app.route('/admin_update_order', methods=['POST'])
+def admin_update_order():
+    if not is_admin():
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+    data = request.json
+    order_id = data.get('order_id', '').strip()
+    status = data.get('status', '').strip()
+    if order_id not in orders:
+        return jsonify({'success': False, 'message': 'Order not found'}), 404
+    if status not in ['Processing', 'Shipped', 'Delivered']:
+        return jsonify({'success': False, 'message': 'Invalid status'}), 400
+    orders[order_id]['status'] = status
+    save_data(medicines, users, orders, cart)
+    return jsonify({'success': True})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

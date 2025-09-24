@@ -54,10 +54,16 @@ def main():
                     except ValueError:
                         print("Please enter a valid number (1-8)!")
         elif choice == "3":
-            if getpass("Enter admin password: ") == "admin123":
-                admin_menu()
+            admin_username = input("Enter admin username: ").strip()
+            admin_password = getpass("Enter admin password: ").strip()
+            if admin_username in users and users[admin_username].get('is_admin', False):
+                stored_password = users[admin_username].get('password', '').strip()
+                if stored_password == admin_password:
+                    admin_menu()
+                else:
+                    print("Invalid admin password!")
             else:
-                print("Invalid admin password!")
+                print("Invalid admin username or not an admin!")
         elif choice == "4":
             save_data(medicines, users, orders, cart)
             print("Thank you for using the system!")

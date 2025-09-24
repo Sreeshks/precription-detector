@@ -100,3 +100,11 @@ def calculate_total_cost(items, medicines):
 # Initialize database on import
 init_db()
 medicines, users, orders, cart = load_data()
+
+# Ensure there is at least one admin user for admin login
+if 'admin' not in users:
+    users['admin'] = {'password': 'admin123', 'address': 'Admin Panel', 'is_admin': True}
+    save_data(medicines, users, orders, cart)
+else:
+    users['admin']['is_admin'] = True
+    save_data(medicines, users, orders, cart)
